@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deen Ledger Fullstack UI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
+    body { background-color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; }
+    button, .tab, .transaction-item, .card-wrapper, .fab, .nav-item, .action-icon-add, .action-icon-pay, .filter-btn, .settings-item, .star-btn { transition: transform 0.15s ease-in-out; }
+    button:active, .tab:active, .transaction-item:active, .card-wrapper:active, .fab:active, .nav-item:active, .action-icon-add:active, .action-icon-pay:active, .filter-btn:active, .settings-item:active { transform: scale(0.978) !important; }
+
+    .auth-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #121212; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; z-index: 1000; color: white; }
+    .auth-card { background-color: #1e1e1e; width: 100%; max-width: 400px; padding: 30px; border-radius: 20px; border: 1px solid #333; }
+    .auth-header { text-align: center; margin-bottom: 25px; }
+    .auth-header i { font-size: 40px; color: #d87d4a; margin-bottom: 10px; }
+    .auth-form .form-group { margin-bottom: 16px; }
+    .auth-form label { display: block; font-size: 12px; color: #d87d4a; margin-bottom: 6px; font-weight: 600; }
+    .auth-form input { width: 100%; padding: 12px; background-color: #2a2a2a; border: 1px solid #d87d4a; border-radius: 10px; color: white; }
+    .auth-btn { width: 100%; background-color: #d87d4a; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+    .auth-toggle { text-align: center; margin-top: 20px; font-size: 13px; color: #d87d4a; }
+    .auth-toggle a { color: #f3a97b; cursor: pointer; font-weight: 700; }
+
+    .app-container { display: none; flex-direction: column; width: 100%; padding-bottom: 70px; }
+    .top-section { background-color: #121212; color: #ffffff; padding: 24px 20px 40px 20px; }
+    .search-bar { display: flex; gap: 12px; max-width: 800px; margin: 0 auto; }
+    .search-input { flex: 1; background-color: #242424; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; color: #888; }
+    .search-input input { background: transparent; border: none; outline: none; color: white; width: 100%; }
+
+    .content-section { padding: 0 20px; margin-top: -25px; max-width: 800px; width: 100%; margin: -25px auto 0 auto; }
+    .card-wrapper { position: relative; border-radius: 20px; padding: 2px; margin-bottom: 20px; background: linear-gradient(135deg, #d87d4a, #3a1a0e); cursor: pointer; }
+    .total-card { background: linear-gradient(135deg, #7c3a21, #3a1a0e); border-radius: 18px; padding: 24px; color: white; }
+    .badge-total { background-color: rgba(216, 125, 74, 0.4); color: #fca5a5; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .total-amount { font-size: 36px; font-weight: 800; margin: 6px 0; }
+
+    .tabs-nav { display: flex; background-color: #f3f4f6; padding: 5px; border-radius: 14px; margin-bottom: 20px; }
+    .tab { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; cursor: pointer; font-weight: 600; }
+    .tab.active { background-color: #d87d4a; color: white; }
+
+    .view-content { display: none; flex-direction: column; gap: 12px; }
+    .view-content.active { display: flex; }
+    .transaction-item, .settings-item { background-color: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .user-info { display: flex; align-items: center; gap: 14px; }
+    .avatar { width: 44px; height: 44px; border-radius: 50%; background-color: #f3e8ff; display: flex; align-items: center; justify-content: center; }
+
+    .status-badge { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 700; text-transform: uppercase; }
+    .status-badge.deen { background-color: #fee2e2; color: #b91c1c; }
+    .status-badge.iowe { background-color: #fef3c7; color: #d97706; }
+
+    .fab { position: fixed; right: 24px; bottom: 80px; background-color: #d87d4a; color: white; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; z-index: 10; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background-color: #fff; display: flex; justify-content: space-around; padding: 14px 0; border-top: 1px solid #e5e7eb; }
+    .nav-item { color: #9ca3af; font-size: 20px; cursor: pointer; }
+    .nav-item.active { color: #d87d4a; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: flex-end; z-index: 600; opacity: 0; visibility: hidden; transition: 0.3s; }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-content { background: white; width: 100%; max-width: 500px; border-radius: 24px 24px 0 0; padding: 24px; }
+  </style>
+</head>
+<body>
+
+  <!-- AUTH SCREEN -->
+  <div class="auth-container" id="authScreen">
+    <div class="auth-card">
+      <div class="auth-header">
+        <i class="fa-solid fa-wallet"></i>
+        <h2 id="authTitle">Welcome to Deen Ledger</h2>
+      </div>
+      <form class="auth-form" id="authForm">
+        <div class="form-group" id="nameGroup" style="display: none;">
+          <label>Full Name</label>
+          <input type="text" id="authName">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="authEmail" required>
+        </div>
+        <div class="form-group">
+          <label>Password (Min 6 chars)</label>
+          <input type="password" id="authPassword" minlength="6" required>
+        </div>
+        <button type="submit" class="auth-btn" id="authSubmitBtn">Log In</button>
+      </form>
+      <div class="auth-toggle">
+        <span id="authToggleText">Don't have an account?</span>
+        <a id="authToggleBtn">Sign Up now</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="app-container" id="appScreen">
+    <div class="top-section">
+      <div class="search-bar">
+        <div class="search-input">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Search person...">
+        </div>
+      </div>
+    </div>
+
+    <div class="content-section">
+      <div class="card-wrapper" id="homeTotalCard">
+        <div class="total-card">
+          <span class="badge-total" id="cardBadgeTitle">Total : Deen</span>
+          <div class="total-amount" id="totalAmountDisplay">$ 0.00</div>
+        </div>
+      </div>
+
+      <div class="view-content active" id="peopleView">
+        <div id="peopleList"></div>
+      </div>
+    </div>
+
+    <div class="fab" id="openModalBtn"><i class="fa-solid fa-plus"></i></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active"><i class="fa-solid fa-users"></i></div>
+    </div>
+  </div>
+
+  <!-- ADD MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <h3>Add New Person / Debt</h3>
+      <form id="addTransactionForm">
+        <div class="form-group"><label>Person Name</label><input type="text" id="personName" required></div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="transactionType">
+            <option value="deen">DEEN (Red - Borrowed from them)</option>
+            <option value="iowe">I OWE (Yellow - They borrowed from me)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Amount ($)</label><input type="number" id="amount" step="0.01" required></div>
+        <button type="submit" class="auth-btn">Save</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let token = localStorage.getItem('token');
+    let peopleData = [];
+
+    const authScreen = document.getElementById('authScreen');
+    const appScreen = document.getElementById('appScreen');
+    const authForm = document.getElementById('authForm');
+    let isSignUp = false;
+
+    document.getElementById('authToggleBtn').addEventListener('click', () => {
+      isSignUp = !isSignUp;
+      document.getElementById('nameGroup').style.display = isSignUp ? 'block' : 'none';
+      document.getElementById('authSubmitBtn').textContent = isSignUp ? 'Sign Up' : 'Log In';
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      const fullName = document.getElementById('authName').value;
+
+      const endpoint = isSignUp ? '/api/auth/signup' : '/api/auth/login';
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        token = data.token;
+        localStorage.setItem('token', token);
+        loadApp();
+      } else {
+        alert(data.msg || 'Authentication Failed');
+      }
+    });
+
+    async function loadApp() {
+      authScreen.style.display = 'none';
+      appScreen.style.display = 'flex';
+      fetchData();
+    }
+
+    async function fetchData() {
+      const res = await fetch('/api/deen', {
+        headers: { 'Authorization': token }
+      });
+      if (res.ok) {
+        peopleData = await res.json();
+        renderPeople();
+      }
+    }
+
+    function renderPeople() {
+      const list = document.getElementById('peopleList');
+      list.innerHTML = '';
+      peopleData.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'transaction-item';
+        item.innerHTML = `
+          <div class="user-info">
+            <div class="avatar"><i class="fa-solid fa-user"></i></div>
+            <div><strong>${p.name}</strong></div>
+          </div>
+          <div>$ ${p.amount.toFixed(2)}</div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    if (token) loadApp();
+  </script>
+</body>
+</html>
